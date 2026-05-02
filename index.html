@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio | Admin Systemes, Reseaux et Cybersecurite</title>
+  <meta
+    name="description"
+    content="Portfolio professionnel en administration systemes, reseaux et cybersecurite."
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Manrope:wght@400;500;700;800&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="hero" id="accueil">
+      <nav class="topbar">
+        <a class="brand" href="#accueil">
+          <span class="brand-mark">MS</span>
+          <span class="brand-text">Meissa Security</span>
+        </a>
+        <div class="nav-links">
+          <a href="#expertise">Expertise</a>
+          <a href="#projets">Projets</a>
+          <a href="#parcours">Parcours</a>
+          <a href="#contact">Contact</a>
+        </div>
+      </nav>
+
+      <div class="hero-grid">
+        <section class="hero-copy">
+          <p class="eyebrow">Portfolio professionnel</p>
+          <h1>Admin systemes, reseaux et cybersecurite</h1>
+          <p class="hero-text">
+            J'accompagne les infrastructures IT avec une approche terrain :
+            deploiement, securisation, supervision et amelioration continue.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#contact">Me contacter</a>
+            <a class="button button-secondary" href="#projets">Voir mes projets</a>
+          </div>
+          <ul class="hero-stats">
+            <li>
+              <strong>Linux / Windows</strong>
+              <span>Administration et maintenance</span>
+            </li>
+            <li>
+              <strong>LAN / WAN / VLAN</strong>
+              <span>Architecture et connectivite</span>
+            </li>
+            <li>
+              <strong>Hardening et veille</strong>
+              <span>Reduction de surface d'attaque</span>
+            </li>
+          </ul>
+        </section>
+
+        <aside class="hero-panel">
+          <div class="terminal-card">
+            <div class="terminal-head">
+              <span></span><span></span><span></span>
+            </div>
+            <pre><code>$ whoami
+sysadmin / network / security
+
+$ skills --top
+- Administration Linux et Windows
+- Active Directory et gestion des acces
+- Virtualisation et sauvegarde
+- Firewall, segmentation, VPN
+- Audit basique et hygiene cyber
+
+$ status
+Operational. Monitoring enabled.</code></pre>
+          </div>
+        </aside>
+      </div>
+    </header>
+
+    <main>
+      <section class="section" id="expertise">
+        <div class="section-heading">
+          <p class="eyebrow">Expertise</p>
+          <h2>Competences cles</h2>
+          <p>
+            Une base polyvalente pour maintenir des systemes stables, des reseaux
+            fiables et des environnements mieux proteges.
+          </p>
+        </div>
+
+        <div class="cards-grid">
+          <article class="info-card">
+            <span class="card-index">01</span>
+            <h3>Administration systemes</h3>
+            <p>
+              Installation, configuration, gestion des utilisateurs, scripts
+              d'automatisation, mises a jour et support d'exploitation.
+            </p>
+          </article>
+
+          <article class="info-card">
+            <span class="card-index">02</span>
+            <h3>Reseaux</h3>
+            <p>
+              Adressage IP, VLAN, commutation, routage, Wi-Fi, diagnostic de
+              connectivite et optimisation des flux internes.
+            </p>
+          </article>
+
+          <article class="info-card">
+            <span class="card-index">03</span>
+            <h3>Cybersecurite</h3>
+            <p>
+              Renforcement de configuration, gestion des acces, sensibilisation,
+              sauvegardes, journalisation et bonnes pratiques de securite.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section section-alt" id="projets">
+        <div class="section-heading">
+          <p class="eyebrow">Realisations</p>
+          <h2>Gestion des projets</h2>
+          <p>
+            Ajoute, modifie, affiche et supprime les projets du portfolio depuis
+            cette interface connectee a l'API Express et MongoDB.
+          </p>
+        </div>
+
+        <div class="project-admin-stack">
+          <section class="projects-panel">
+            <div class="projects-toolbar">
+              <div>
+                <p class="project-tag">Liste</p>
+                <h3>Projets enregistres</h3>
+              </div>
+              <button class="button button-secondary button-small" id="refresh-projects" type="button">
+                Actualiser
+              </button>
+            </div>
+
+            <p class="projects-feedback" id="projects-feedback" aria-live="polite"></p>
+            <div class="project-list" id="project-list"></div>
+          </section>
+
+          <section class="project-form-card">
+            <div class="project-form-head">
+              <div>
+                <p class="project-tag">Administration</p>
+                <h3 id="form-title">Ajouter un projet</h3>
+              </div>
+              <button class="button button-secondary button-small hidden" id="cancel-edit" type="button">
+                Annuler la modification
+              </button>
+            </div>
+
+            <form id="project-form" class="project-form">
+              <input type="hidden" id="project-id">
+
+              <label>
+                <span>Titre du projet</span>
+                <input id="title" name="title" type="text" placeholder="Ex: Supervision reseau avec Zabbix" required>
+              </label>
+
+              <label>
+                <span>Description</span>
+                <textarea id="description" name="description" rows="5" placeholder="Decris le projet..." required></textarea>
+              </label>
+
+              <label>
+                <span>Technologies</span>
+                <input id="technologies" name="technologies" type="text" placeholder="Ex: Linux, Docker, MongoDB">
+              </label>
+
+              <div class="image-field">
+                <span>Image du projet</span>
+                <div class="dropzone" id="image-dropzone" tabindex="0" role="button" aria-label="Selectionner une image">
+                  <input id="imageFile" name="imageFile" type="file" accept="image/*" hidden>
+                  <div class="dropzone-copy">
+                    <strong>Glisse une image ici</strong>
+                    <p>ou clique pour selectionner un fichier</p>
+                  </div>
+                  <div class="image-preview hidden" id="image-preview-wrapper">
+                    <img id="image-preview" alt="Apercu de l'image du projet">
+                  </div>
+                </div>
+                <div class="image-actions">
+                  <button class="button button-secondary button-small" id="select-image" type="button">
+                    Choisir une image
+                  </button>
+                  <button class="button button-secondary button-small hidden" id="remove-image" type="button">
+                    Retirer l'image
+                  </button>
+                </div>
+                <p class="image-meta" id="image-meta">Aucune image selectionnee.</p>
+              </div>
+
+              <label>
+                <span>Lien GitHub</span>
+                <input id="githubUrl" name="githubUrl" type="url" placeholder="https://github.com/...">
+              </label>
+
+              <label>
+                <span>Lien demo</span>
+                <input id="demoUrl" name="demoUrl" type="url" placeholder="https://...">
+              </label>
+
+              <label>
+                <span>Statut</span>
+                <select id="status" name="status">
+                  <option value="planifie">Planifie</option>
+                  <option value="en cours">En cours</option>
+                  <option value="termine">Termine</option>
+                </select>
+              </label>
+
+              <div class="form-actions">
+                <button class="button button-primary" id="submit-button" type="submit">
+                  Ajouter le projet
+                </button>
+              </div>
+            </form>
+
+            <p class="form-feedback" id="form-feedback" aria-live="polite"></p>
+          </section>
+        </div>
+      </section>
+
+      <section class="section timeline-section" id="parcours">
+        <div class="section-heading">
+          <p class="eyebrow">Parcours</p>
+          <h2>Formation et progression</h2>
+        </div>
+
+        <div class="timeline">
+          <article class="timeline-item">
+            <span class="timeline-year">2026</span>
+            <div>
+              <h3>Orientation cyber et administration</h3>
+              <p>
+                Consolidation des competences en systemes, reseau et securite a
+                travers des projets pratiques et des environnements de lab.
+              </p>
+            </div>
+          </article>
+
+          <article class="timeline-item">
+            <span class="timeline-year">En cours</span>
+            <div>
+              <h3>Montee en competence continue</h3>
+              <p>
+                Veille technique, exercices d'analyse, documentation et pratique
+                reguliere des outils d'exploitation et de defense.
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section contact-section" id="contact">
+        <div class="section-heading">
+          <p class="eyebrow">Contact</p>
+          <h2>Disponible pour missions, stage ou alternance</h2>
+          <p>
+            Tu peux remplacer ici tes vraies coordonnees, liens GitHub, LinkedIn
+            ou e-mail professionnel.
+          </p>
+        </div>
+
+        <div class="contact-card">
+          <a href="mailto:contact@exemple.com">contact@exemple.com</a>
+          <a href="https://www.linkedin.com" target="_blank" rel="noreferrer">LinkedIn</a>
+          <a href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
