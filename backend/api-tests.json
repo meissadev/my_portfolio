@@ -1,0 +1,82 @@
+{
+  "info": {
+    "name": "Portfolio API",
+    "description": "Collection de tests pour l'API Portfolio",
+    "version": "1.0.0"
+  },
+  "requests": [
+    {
+      "name": "Health Check",
+      "method": "GET",
+      "url": "http://localhost:5000/api/health",
+      "description": "Vérifier que l'API fonctionne"
+    },
+    {
+      "name": "Get All Projects",
+      "method": "GET",
+      "url": "http://localhost:5000/api/projects",
+      "description": "Récupérer tous les projets"
+    },
+    {
+      "name": "Get Projects by Category (Web)",
+      "method": "GET",
+      "url": "http://localhost:5000/api/projects?category=web",
+      "description": "Récupérer les projets de catégorie web"
+    },
+    {
+      "name": "Get Featured Projects",
+      "method": "GET",
+      "url": "http://localhost:5000/api/projects?featured=true",
+      "description": "Récupérer les projets mis en avant"
+    },
+    {
+      "name": "Get Project by ID",
+      "method": "GET",
+      "url": "http://localhost:5000/api/projects/PROJECT_ID_HERE",
+      "description": "Récupérer un projet spécifique (remplacer PROJECT_ID_HERE)"
+    },
+    {
+      "name": "Create Project",
+      "method": "POST",
+      "url": "http://localhost:5000/api/projects",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "title": "Nouveau Projet Test",
+        "description": "Description détaillée du projet de test avec toutes les informations nécessaires",
+        "technologies": ["React", "Express", "MongoDB", "TailwindCSS"],
+        "category": "web",
+        "featured": true,
+        "status": "en cours",
+        "imageUrl": "https://example.com/image.jpg",
+        "githubUrl": "https://github.com/meissadev/project",
+        "liveUrl": "https://project.example.com",
+        "startDate": "2026-05-01"
+      },
+      "description": "Créer un nouveau projet"
+    },
+    {
+      "name": "Update Project",
+      "method": "PUT",
+      "url": "http://localhost:5000/api/projects/PROJECT_ID_HERE",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "title": "Titre Modifié",
+        "description": "Description modifiée du projet",
+        "featured": false,
+        "status": "terminé",
+        "endDate": "2026-05-08"
+      },
+      "description": "Modifier un projet existant (remplacer PROJECT_ID_HERE)"
+    },
+    {
+      "name": "Delete Project",
+      "method": "DELETE",
+      "url": "http://localhost:5000/api/projects/PROJECT_ID_HERE",
+      "description": "Supprimer un projet (remplacer PROJECT_ID_HERE)"
+    }
+  ]
+}

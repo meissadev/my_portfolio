@@ -1,0 +1,46 @@
+services:
+
+  db:
+    image: mongo:8.3.1
+    container_name: portfolio-mongo
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - portfolio-network
+
+  backend:
+    depends_on: 
+      - db
+    build: 
+      context: ./backend
+      args:
+        - NODE_ENV=${NODE_ENV}
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+    container_name: portfolio-backend
+    ports:
+      - "5000:5000"
+    networks:
+      - portfolio-network
+
+  frontend:
+    depends_on: 
+      - backend
+    build: 
+      context: ./frontend
+      args:
+        - NODE_ENV=${NODE_ENV}
+        - VITE_API_URL=${VITE_API_URL}
+    container_name: portfolio-frontend
+    ports:
+      - "8000:80"
+    networks:
+      - portfolio-network
+
+volumes:
+  mongo-data:
+
+networks:
+  portfolio-network:
+
