@@ -18,18 +18,22 @@ pipeline {
             }
         }
 
-        stage ("Lint du code front et backend") {
+        stage ("Lint du code front, backend et des images docker") {
             steps {
                 dir ("backend") {
-                    echo "Execution des tests du code frontend"
+                    echo "Execution des lint du code frontend"
                     sh "npm i"
                     sh "npm run lint"
+                    echo "Test du Dockerfile"
+                    sh "docker build --check ."
                 }
                 
                 dir ("frontend") {
                     echo "Execution des tests du code frontend"
                     sh "npm i"
                     sh "npm run lint"
+                    echo "Test du Dockerfile"
+                    sh "docker build --check ."
                 }
             }
         }
