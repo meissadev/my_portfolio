@@ -2,7 +2,6 @@ pipeline {
     agents {
         label "linux"
     }
-
     stages {
         stage ("Checkout") {
             steps {
