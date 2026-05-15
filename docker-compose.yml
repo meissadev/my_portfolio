@@ -30,7 +30,6 @@ services:
     image: portfolio-frontend:latest  # ← image du registry, plus de build
     container_name: portfolio-frontend
     restart: unless-stopped
-    container_name: portfolio-frontend
     ports:
       - "8000:80"
     networks:
