@@ -14,9 +14,6 @@ services:
     image: portfolio-backend:latest  # ← image du registry, plus de build
     container_name: portfolio-backend
     restart: unless-stopped
-    environment:
-      - MONGO_URI=${MONGO_URI}
-      - CORS_ORIGIN=${CORS_ORIGIN}
     ports:
       - "5000:5000"
     environment:
