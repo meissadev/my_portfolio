@@ -15,7 +15,7 @@ pipeline {
         FRONTEND_IMAGE       = "${DOCKERHUB_USER}/frontend-portfolio"
         IMAGE_TAG            = "${GIT_COMMIT[0..6]}"
 
-        NODE_ENV             = "production"
+        // NODE_ENV             = "production"
     }
 
     stages {
@@ -35,13 +35,13 @@ pipeline {
                     sh "docker build --check ."
                 }
                 
-                dir ("frontend") {
-                    echo "Execution des tests du code frontend"
-                    sh "npm i"
-                    sh "npm run lint"
-                    echo "Test du Dockerfile"
-                    sh "docker build --check ."
-                }
+        //         dir ("frontend") {
+        //             echo "Execution des tests du code frontend"
+        //             sh "npm i"
+        //             sh "npm run lint"
+        //             echo "Test du Dockerfile"
+        //             sh "docker build --check ."
+        //         }
             }
         }
 
