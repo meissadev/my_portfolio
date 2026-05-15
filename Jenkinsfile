@@ -9,6 +9,13 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIAL = ("e62a8a17-b1d2-4122-949b-3449fd808ae0")
+        DOCKERHUB_USER       = "meissadev"
+
+        BACKEND_IMAGE        = "${DOCKERHUB_USER}/backend-portfolio"
+        FRONTEND_IMAGE       = "${DOCKERHUB_USER}/frontend-portfolio"
+        IMAGE_TAG            = "${GIT_COMMIT[0..6]}"
+
+        NODE_ENV             = "production"
     }
 
     stages {
@@ -41,6 +48,7 @@ pipeline {
         stage ("Build des images") {
             steps {
                 echo "Building images !"
+                echo "${IMAGE_TAG}"
             }
         }
 
