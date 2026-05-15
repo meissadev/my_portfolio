@@ -89,4 +89,17 @@ pipeline {
         //     echo "Deploiement"
         // }
     }
+
+    post {
+        success {
+            echo "✅ Pipeline terminé — image taguée : ${IMAGE_TAG}"
+        }
+        failure {
+            echo "❌ Pipeline échoué — vérifier les logs"
+        }
+        always {
+            sh "docker logout || true"
+            cleanWs()
+        }
+    }
 }
