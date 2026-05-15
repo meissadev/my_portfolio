@@ -1,119 +1,127 @@
 pipeline {
     agent {
-        label "linux"
+        label 'linux'
     }
-    tools {
-        nodejs "Node-24"
-    }
+
     environment {
-        DOCKERHUB_CREDENTIAL = ("dockerhub-creds")
-        DOCKERHUB_USER       = "meissadev"
-        BACKEND_IMAGE        = "backend-portfolio"
-        FRONTEND_IMAGE       = "frontend-portfolio"
-        IMAGE_TAG            = "${GIT_COMMIT[0..6]}"
+        FRONTEND_IMAGE = "portfolio-app"
+        BACKEND_IMAGE  = "portfolio-server"
+        VITE_API_URL   = "http://192.168.60.128/api"
+        CORS_ORIGIN    = "http://192.168.60.128"
+        PORT           = "5000"
     }
+
     stages {
-        stage ("Checkout") {
-            steps {
-                checkout scm
-            }
-        }
-        stage ("Lint du code front, backend et des images docker") {
-            steps {
-                dir ("backend") {
-                    echo "Execution des lint du code backend"
-                    sh "npm i"
-                    sh "npm run lint"
-                    echo "Test du Dockerfile"
-                    sh "docker build --check ."
+
+        // ── STAGE LINT ────────────────────────────────────────────────────────
+        stage('Lint') {
+            parallel {
+                stage('lint:code') {
+                    agent { 
+                        docker { 
+                            image 'node:24-alpine' 
+                        } 
+                    }
+                    steps {
+                        sh 'npm install --prefix frontend && npm run lint --prefix frontend'
+                        sh 'npm install --prefix backend  && npm run lint --prefix backend'
+                    }
                 }
-                
-                dir ("frontend") {
-                    echo "Execution des tests du code frontend"
-                    sh "npm i"
-                    sh "npm run lint"
-                    echo "Test du Dockerfile"
-                    sh "docker build --check ."
+
+                stage('lint:dockerfile') {
+                    agent { docker { 
+                        image 'docker:29.3.1' 
+                        } 
+                    }
+                    steps {
+                        sh 'docker build --check frontend'
+                        sh 'docker build --check backend'
+                    }
                 }
             }
         }
-        stage ("Tests de securite et scan") {
-            steps {
-                echo "Execution des tests de securite"
-            }
-        }
-        stage ("Tests unitaires") {
-            steps {
-                echo "Execution des tests unitaires"
-            }
-        }
-        stage ("Build des images") {
-            when {
-                branch 'main'
+
+        // ── STAGE BUILD ───────────────────────────────────────────────────────
+        stage('Build') {
+            agent { 
+                docker { 
+                    image 'docker:29.3.1' 
+                }
             }
             environment {
-                NODE_ENV  = "production"
+                NODE_ENV = 'production'
             }
             steps {
-                echo "Building images !"
-                echo "<<<<<<==========Build de l'image Backend"
-                sh """
-                    docker build \
-                        --build-arg NODE_ENV=${NODE_ENV} \
-                        -t ${DOCKERHUB_USER}/${BACKEND_IMAGE}:${IMAGE_TAG} \
-                        -t ${DOCKERHUB_USER}/${BACKEND_IMAGE}:latest \
-                        ./backend
-                """
-                echo "<<<<<<==========Build de l'image frontend"
-                sh """
-                    docker build \
-                        --build-arg NODE_ENV=${NODE_ENV} \
-                        --build-arg VITE_API_URL=${env.VITE_API_URL} \
-                        -t ${DOCKERHUB_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG} \
-                        -t ${DOCKERHUB_USER}/${FRONTEND_IMAGE}:latest \
-                        ./frontend
-                """
-                echo "<<<<<<==========Verification des images"
-                sh "docker image ls"
-            }
-        }
+                // docker login via Jenkins credentials
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', 
+                                                    usernameVariable: 'DOCKER_HUB_USER', 
+                                                    passwordVariable: 'DOCKER_HUB_TOKEN')]) {
+                    sh 'echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USER" --password-stdin'
 
-        // ─── PUSH ───────────────────────────────────────────────────────
-        stage ("Push des images") {
-            when {
-                branch 'main'
-            }
-            steps {
                     sh """
-                        docker push ${DOCKERHUB_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}
-                        docker push ${DOCKERHUB_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG}
+                        docker build \\
+                            --build-arg NODE_ENV=${NODE_ENV} \\
+                            --build-arg VITE_API_URL=${VITE_API_URL} \\
+                            -t "\${DOCKER_HUB_USER}/${FRONTEND_IMAGE}:latest" \\
+                            frontend
                     """
+                    sh """
+                        docker build \\
+                            --build-arg NODE_ENV=${NODE_ENV} \\
+                            -t "\${DOCKER_HUB_USER}/${BACKEND_IMAGE}:latest" \\
+                            backend
+                    """
+                    sh 'docker push "${DOCKER_HUB_USER}/${FRONTEND_IMAGE}:latest"'
+                    sh 'docker push "${DOCKER_HUB_USER}/${BACKEND_IMAGE}:latest"'
+                }
+            }
+            post {
+                always {
+                    sh 'docker logout || true'
+                }
             }
         }
-        // ────────────────────────────────────────────────────────────────
 
-        stage ("Deploiement") {
-            when {
-                branch 'main'
-            }
+        // ── STAGE TEST ────────────────────────────────────────────────────────
+        stage('Test') {
             steps {
-                sh """
-                    docker compose up -d --remove-orphans &&
-                    docker image prune -f
-                """
+                echo 'Exécution des tests...'
             }
         }
-    }
-    post {
-        success {
-            echo "✅ Pipeline terminé — image taguée : ${IMAGE_TAG}"
-        }
-        failure {
-            echo "❌ Pipeline échoué — vérifier les logs"
-        }
-        always {
-            sh "docker logout || true"
-            cleanWs()
+
+        // ── STAGE DEPLOY ──────────────────────────────────────────────────────
+        stage('Deploy') {
+            steps {
+                // Générer le fichier .env
+                sh """
+                    echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}" >  .env
+                    echo "BACKEND_IMAGE=${BACKEND_IMAGE}"   >> .env
+                    echo "VITE_API_URL=${VITE_API_URL}"     >> .env
+                    echo "CORS_ORIGIN=${CORS_ORIGIN}"       >> .env
+                    echo "PORT=${PORT}"                     >> .env
+                    echo "MONGO_URI=${env.MONGO_URI}"          >> .env
+                    echo "DOCKER_HUB_USER=${DOCKER_HUB_USER}" >> .env
+                """
+                
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', 
+                                                    usernameVariable: 'DOCKER_HUB_USER', 
+                                                    passwordVariable: 'DOCKER_HUB_TOKEN')]) {
+                    sh 'echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USER" --password-stdin'
+
+                    sh 'docker compose down -v --remove-orphans'
+                    sh 'docker compose up -d --remove-orphans'
+                    sh 'docker image prune -f'
+                    sh 'sleep 10'
+                    sh 'docker ps'
+                }
+            }
+            
+            post {
+                always {
+                    sh 'rm -f .env || true'
+                    sh 'docker logout || true'
+                }
+            }  
         }
     }
 }
