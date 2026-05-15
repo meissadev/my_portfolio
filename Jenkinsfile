@@ -85,9 +85,13 @@ pipeline {
             }
         }
 
-        // stage ("Deploiement") {
-        //     echo "Deploiement"
-        // }
+        stage ("Deploiement") {
+            steps {
+                sh """
+                    docker compose up -d --remove-orphans &&
+                    docker image prune -f
+            """
+        }
     }
 
     post {
