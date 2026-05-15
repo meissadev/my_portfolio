@@ -2,31 +2,26 @@ pipeline {
     agent {
         label "linux"
     }
-
     tools {
         nodejs "Node-24"
     }
-
     environment {
         DOCKERHUB_CREDENTIAL = ("e62a8a17-b1d2-4122-949b-3449fd808ae0")
         DOCKERHUB_USER       = "meissadev"
-
         BACKEND_IMAGE        = "${DOCKERHUB_USER}/backend-portfolio"
         FRONTEND_IMAGE       = "${DOCKERHUB_USER}/frontend-portfolio"
         IMAGE_TAG            = "${GIT_COMMIT[0..6]}"
     }
-
     stages {
         stage ("Checkout") {
             steps {
                 checkout scm
             }
         }
-
         stage ("Lint du code front, backend et des images docker") {
             steps {
                 dir ("backend") {
-                    echo "Execution des lint du code frontend"
+                    echo "Execution des lint du code backend"
                     sh "npm i"
                     sh "npm run lint"
                     echo "Test du Dockerfile"
@@ -42,24 +37,23 @@ pipeline {
                 }
             }
         }
-
         stage ("Tests de securite et scan") {
             steps {
                 echo "Execution des tests de securite"
             }
         }
-
         stage ("Tests unitaires") {
             steps {
                 echo "Execution des tests unitaires"
             }
         }
-
         stage ("Build des images") {
+            when {
+                branch 'main'
+            }
             environment {
                 NODE_ENV  = "production"
             }
-
             steps {
                 echo "Building images !"
                 echo "<<<<<<==========Build de l'image Backend"
@@ -79,13 +73,38 @@ pipeline {
                         -t ${FRONTEND_IMAGE}:latest \
                         ./frontend
                 """
-
                 echo "<<<<<<==========Verification des images"
                 sh "docker image ls"
             }
         }
 
+        // ─── PUSH ───────────────────────────────────────────────────────
+        stage ("Push des images") {
+            when {
+                branch 'main'
+            }
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: "${DOCKERHUB_CREDENTIAL}",
+                    usernameVariable: 'DH_USER',
+                    passwordVariable: 'DH_TOKEN'
+                )]) {
+                    sh "echo ${DH_TOKEN} | docker login -u ${DH_USER} --password-stdin"
+                    sh """
+                        docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
+                        docker push ${BACKEND_IMAGE}:latest
+                        docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
+                        docker push ${FRONTEND_IMAGE}:latest
+                    """
+                }
+            }
+        }
+        // ────────────────────────────────────────────────────────────────
+
         stage ("Deploiement") {
+            when {
+                branch 'main'
+            }
             steps {
                 sh """
                     docker compose up -d --remove-orphans &&
@@ -94,7 +113,6 @@ pipeline {
             }
         }
     }
-
     post {
         success {
             echo "✅ Pipeline terminé — image taguée : ${IMAGE_TAG}"
