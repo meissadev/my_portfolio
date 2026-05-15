@@ -6,7 +6,7 @@ pipeline {
         nodejs "Node-24"
     }
     environment {
-        DOCKERHUB_CREDENTIAL = ("e62a8a17-b1d2-4122-949b-3449fd808ae0")
+        DOCKERHUB_CREDENTIAL = ("dockerhub-creds")
         DOCKERHUB_USER       = "meissadev"
         BACKEND_IMAGE        = "${DOCKERHUB_USER}/backend-portfolio"
         FRONTEND_IMAGE       = "${DOCKERHUB_USER}/frontend-portfolio"
@@ -80,14 +80,14 @@ pipeline {
 
         // ─── PUSH ───────────────────────────────────────────────────────
         stage ("Push des images") {
-            when {
-                branch 'main'
-            }
+            // when {
+            //     branch 'main'
+            // }
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: "${DOCKERHUB_CREDENTIAL}",
-                    usernameVariable: 'DH_USER',
-                    passwordVariable: 'DH_TOKEN'
+                    usernameVariable: 'DOCKERHUB_CREDENTIALS_USR',
+                    passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW'
                 )]) {
                     sh "echo ${DH_TOKEN} | docker login -u ${DH_USER} --password-stdin"
                     sh """
