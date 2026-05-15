@@ -48,9 +48,9 @@ pipeline {
             }
         }
         stage ("Build des images") {
-            // when {
-            //     branch 'main'
-            // }
+            when {
+                branch 'main'
+            }
             environment {
                 NODE_ENV  = "production"
             }
@@ -80,9 +80,9 @@ pipeline {
 
         // ─── PUSH ───────────────────────────────────────────────────────
         stage ("Push des images") {
-            // when {
-            //     branch 'main'
-            // }
+            when {
+                branch 'main'
+            }
             steps {
                     sh """
                         docker push ${DOCKERHUB_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}
