@@ -66,8 +66,8 @@ pipeline {
                 sh """
                     docker build \
                         --build-arg NODE_ENV=${NODE_ENV} \
-                        -t ${IMAGE_BACKEND}:${IMAGE_TAG} \
-                        -t ${IMAGE_BACKEND}:latest \
+                        -t ${BACKEND_IMAGE}:${IMAGE_TAG} \
+                        -t ${BACKEND_IMAGE}:latest \
                         ./backend
                 """
                 echo "<<<<<<==========Build de l'image frontend"
@@ -75,8 +75,8 @@ pipeline {
                     docker build \
                         --build-arg NODE_ENV=${NODE_ENV} \
                         --build-arg VITE_API_URL=${env.VITE_API_URL} \
-                        -t ${IMAGE_FRONTEND}:${IMAGE_TAG} \
-                        -t ${IMAGE_FRONTEND}:latest \
+                        -t ${FRONTEND_IMAGE}:${IMAGE_TAG} \
+                        -t ${FRONTEND_IMAGE}:latest \
                         ./frontend
                 """
 
