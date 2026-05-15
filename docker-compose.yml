@@ -17,7 +17,6 @@ services:
     environment:
       - MONGO_URI=${MONGO_URI}
       - CORS_ORIGIN=${CORS_ORIGIN}
-    container_name: portfolio-backend
     ports:
       - "5000:5000"
     environment:
