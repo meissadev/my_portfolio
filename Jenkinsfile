@@ -89,7 +89,7 @@ pipeline {
                     usernameVariable: 'DOCKERHUB_CREDENTIALS_USR',
                     passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW'
                 )]) {
-                    sh "echo ${DOCKERHUB_CREDENTIALS_USR} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
+                    // sh "echo ${DOCKERHUB_CREDENTIALS_USR} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
                     sh """
                         docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
                         docker push ${BACKEND_IMAGE}:latest
