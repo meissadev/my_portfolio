@@ -14,8 +14,6 @@ pipeline {
         BACKEND_IMAGE        = "${DOCKERHUB_USER}/backend-portfolio"
         FRONTEND_IMAGE       = "${DOCKERHUB_USER}/frontend-portfolio"
         IMAGE_TAG            = "${GIT_COMMIT[0..6]}"
-
-        // NODE_ENV             = "production"
     }
 
     stages {
@@ -35,27 +33,60 @@ pipeline {
                     sh "docker build --check ."
                 }
                 
-        //         dir ("frontend") {
-        //             echo "Execution des tests du code frontend"
-        //             sh "npm i"
-        //             sh "npm run lint"
-        //             echo "Test du Dockerfile"
-        //             sh "docker build --check ."
-        //         }
+                dir ("frontend") {
+                    echo "Execution des tests du code frontend"
+                    sh "npm i"
+                    sh "npm run lint"
+                    echo "Test du Dockerfile"
+                    sh "docker build --check ."
+                }
+            }
+        }
+
+        stage ("Tests de securite et scan") {
+            steps {
+                echo "Execution des tests de securite"
+            }
+        }
+
+        stage ("Tests unitaires") {
+            steps {
+                echo "Execution des tests unitaires"
             }
         }
 
         stage ("Build des images") {
+            environment {
+                NODE_ENV  = "production"
+            }
+
             steps {
                 echo "Building images !"
-                echo "${IMAGE_TAG}"
+                echo "<<<<<<==========Build de l'image Backend"
+                sh """
+                    docker build \
+                        --build-arg NODE_ENV=${NODE_ENV} \
+                        -t ${IMAGE_BACKEND}:${IMAGE_TAG} \
+                        -t ${IMAGE_BACKEND}:latest \
+                        ./backend
+                """
+                echo "<<<<<<==========Build de l'image frontend"
+                sh """
+                    docker build \
+                        --build-arg NODE_ENV=${NODE_ENV} \
+                        --build-arg VITE_API_URL=${env.VITE_API_URL} \
+                        -t ${IMAGE_FRONTEND}:${IMAGE_TAG} \
+                        -t ${IMAGE_FRONTEND}:latest \
+                        ./frontend
+                """
+
+                echo "<<<<<<==========Verification des images"
+                sh "docker image ls"
             }
         }
 
-        stage ("Test du code") {
-            steps {
-                echo "Testing the code"
-            }
+        stage ("Deploiement") {
+            echo "Deploiement"
         }
     }
 }
