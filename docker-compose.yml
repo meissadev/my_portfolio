@@ -14,8 +14,6 @@ services:
     image: portfolio-backend:latest  # ← image du registry, plus de build
     container_name: portfolio-backend
     restart: unless-stopped
-      args:
-        - NODE_ENV=${NODE_ENV}
     environment:
       - MONGO_URI=${MONGO_URI}
       - CORS_ORIGIN=${CORS_ORIGIN}
