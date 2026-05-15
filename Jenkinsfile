@@ -80,6 +80,9 @@ pipeline {
 
         // ─── PUSH ───────────────────────────────────────────────────────
         stage ("Push des images") {
+            when {
+                branch 'main'
+            }
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: "${DOCKERHUB_CREDENTIAL}",
@@ -99,6 +102,9 @@ pipeline {
         // ────────────────────────────────────────────────────────────────
 
         stage ("Deploiement") {
+            when {
+                branch 'main'
+            }
             steps {
                 sh """
                     docker compose up -d --remove-orphans &&
