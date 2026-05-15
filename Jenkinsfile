@@ -48,6 +48,9 @@ pipeline {
             }
         }
         stage ("Build des images") {
+            when {
+                branch 'main'
+            }
             environment {
                 NODE_ENV  = "production"
             }
@@ -77,6 +80,9 @@ pipeline {
 
         // ─── PUSH ───────────────────────────────────────────────────────
         stage ("Push des images") {
+            when {
+                branch 'main'
+            }
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: "${DOCKERHUB_CREDENTIAL}",
