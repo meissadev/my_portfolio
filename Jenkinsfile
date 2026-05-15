@@ -8,8 +8,8 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIAL = ("dockerhub-creds")
         DOCKERHUB_USER       = "meissadev"
-        BACKEND_IMAGE        = "${DOCKERHUB_USER}/backend-portfolio"
-        FRONTEND_IMAGE       = "${DOCKERHUB_USER}/frontend-portfolio"
+        BACKEND_IMAGE        = "backend-portfolio"
+        FRONTEND_IMAGE       = "frontend-portfolio"
         IMAGE_TAG            = "${GIT_COMMIT[0..6]}"
     }
     stages {
@@ -60,8 +60,8 @@ pipeline {
                 sh """
                     docker build \
                         --build-arg NODE_ENV=${NODE_ENV} \
-                        -t ${BACKEND_IMAGE}:${IMAGE_TAG} \
-                        -t ${BACKEND_IMAGE}:latest \
+                        -t ${DOCKERHUB_USER}/${BACKEND_IMAGE}:${IMAGE_TAG} \
+                        -t ${DOCKERHUB_USER}/${BACKEND_IMAGE}:latest \
                         ./backend
                 """
                 echo "<<<<<<==========Build de l'image frontend"
@@ -69,8 +69,8 @@ pipeline {
                     docker build \
                         --build-arg NODE_ENV=${NODE_ENV} \
                         --build-arg VITE_API_URL=${env.VITE_API_URL} \
-                        -t ${FRONTEND_IMAGE}:${IMAGE_TAG} \
-                        -t ${FRONTEND_IMAGE}:latest \
+                        -t ${DOCKERHUB_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG} \
+                        -t ${DOCKERHUB_USER}/${FRONTEND_IMAGE}:latest \
                         ./frontend
                 """
                 echo "<<<<<<==========Verification des images"
