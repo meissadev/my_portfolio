@@ -85,8 +85,8 @@ pipeline {
             }
         }
 
-        stage ("Deploiement") {
-            echo "Deploiement"
-        }
+        // stage ("Deploiement") {
+        //     echo "Deploiement"
+        // }
     }
 }
