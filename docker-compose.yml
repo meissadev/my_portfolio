@@ -11,8 +11,9 @@ services:
   backend:
     depends_on: 
       - db
-    build: 
-      context: ./backend
+    image: portfolio-backend:latest  # ← image du registry, plus de build
+    container_name: portfolio-backend
+    restart: unless-stopped
       args:
         - NODE_ENV=${NODE_ENV}
     environment:
@@ -21,17 +22,20 @@ services:
     container_name: portfolio-backend
     ports:
       - "5000:5000"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=5000
+      - MONGO_URI=${MONGO_URI}
+      - CORS_ORIGIN=${CORS_ORIGIN}
     networks:
       - portfolio-network
 
   frontend:
     depends_on: 
       - backend
-    build: 
-      context: ./frontend
-      args:
-        - NODE_ENV=${NODE_ENV}
-        - VITE_API_URL=${VITE_API_URL}
+    image: portfolio-frontend:latest  # ← image du registry, plus de build
+    container_name: portfolio-frontend
+    restart: unless-stopped
     container_name: portfolio-frontend
     ports:
       - "8000:80"
