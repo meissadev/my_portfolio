@@ -1,5 +1,6 @@
 services:
 
+<<<<<<< HEAD
   db:
     image: mongo:8.3.1
     container_name: portfolio-mongo
@@ -21,17 +22,75 @@ services:
       - PORT=5000
       - MONGO_URI=${MONGO_URI}
       - CORS_ORIGIN=${CORS_ORIGIN}
+=======
+  traefik:
+    image: traefik:v3.7
+    container_name: traefik
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+>>>>>>> d607d52 (Setting up traefik reverse proxy)
     networks:
       - portfolio-network
 
   frontend:
-    depends_on: 
+    depends_on:
       - backend
+<<<<<<< HEAD
     image: portfolio-frontend:latest  # ← image du registry, plus de build
     container_name: portfolio-frontend
     restart: unless-stopped
     ports:
       - "8000:80"
+=======
+    image: ${DOCKER_HUB_USER}/${FRONTEND_IMAGE}:latest
+    container_name: portfolio-app
+    expose:
+      - "80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=portfolio-network"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend.priority=1"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    networks:
+      - portfolio-network
+
+  backend:
+    depends_on:
+      - db
+    image: ${DOCKER_HUB_USER}/${BACKEND_IMAGE}:latest
+    container_name: portfolio-server
+    expose:
+      - "5000"
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - PORT=${PORT}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.routers.backend.priority=2"
+      - "traefik.http.services.backend.loadbalancer.server.port=5000"
+    networks:
+      - portfolio-network
+
+  db:
+    image: mongo:8.3.1
+    container_name: portfolio-mongo
+    expose:
+      - "27017"
+    volumes:
+      - mongo-data:/data/db
+>>>>>>> d607d52 (Setting up traefik reverse proxy)
     networks:
       - portfolio-network
 
@@ -40,4 +99,4 @@ volumes:
 
 networks:
   portfolio-network:
-
+    driver: bridge
