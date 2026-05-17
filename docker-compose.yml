@@ -1,28 +1,5 @@
 services:
 
-<<<<<<< HEAD
-  db:
-    image: mongo:8.3.1
-    container_name: portfolio-mongo
-    volumes:
-      - mongo-data:/data/db
-    networks:
-      - portfolio-network
-
-  backend:
-    depends_on: 
-      - db
-    image: portfolio-backend:latest  # ← image du registry, plus de build
-    container_name: portfolio-backend
-    restart: unless-stopped
-    ports:
-      - "5000:5000"
-    environment:
-      - NODE_ENV=${NODE_ENV}
-      - PORT=5000
-      - MONGO_URI=${MONGO_URI}
-      - CORS_ORIGIN=${CORS_ORIGIN}
-=======
   traefik:
     image: traefik:v3.7
     container_name: traefik
@@ -35,20 +12,12 @@ services:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--entrypoints.web.address=:80"
->>>>>>> d607d52 (Setting up traefik reverse proxy)
     networks:
       - portfolio-network
 
   frontend:
     depends_on:
       - backend
-<<<<<<< HEAD
-    image: portfolio-frontend:latest  # ← image du registry, plus de build
-    container_name: portfolio-frontend
-    restart: unless-stopped
-    ports:
-      - "8000:80"
-=======
     image: ${DOCKER_HUB_USER}/${FRONTEND_IMAGE}:latest
     container_name: portfolio-app
     expose:
@@ -90,7 +59,6 @@ services:
       - "27017"
     volumes:
       - mongo-data:/data/db
->>>>>>> d607d52 (Setting up traefik reverse proxy)
     networks:
       - portfolio-network
 
