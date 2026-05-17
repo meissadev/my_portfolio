@@ -83,20 +83,20 @@ pipeline {
         stage('Deploy') {
             steps {
                 // Générer le fichier .env
-                sh """
-                    echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}" >  .env
-                    echo "BACKEND_IMAGE=${BACKEND_IMAGE}"   >> .env
-                    echo "VITE_API_URL=${VITE_API_URL}"     >> .env
-                    echo "CORS_ORIGIN=${CORS_ORIGIN}"       >> .env
-                    echo "PORT=${PORT}"                     >> .env
-                    echo "MONGO_URI=${env.MONGO_URI}"          >> .env
-                    echo "DOCKER_HUB_USER=${DOCKER_HUB_USER}" >> .env
-                """
-                
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', 
                                                     usernameVariable: 'DOCKER_HUB_USER', 
                                                     passwordVariable: 'DOCKER_HUB_TOKEN')]) {
                     sh 'echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USER" --password-stdin'
+
+                    sh """
+                        echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}" >  .env
+                        echo "BACKEND_IMAGE=${BACKEND_IMAGE}"   >> .env
+                        echo "VITE_API_URL=${VITE_API_URL}"     >> .env
+                        echo "CORS_ORIGIN=${CORS_ORIGIN}"       >> .env
+                        echo "PORT=${PORT}"                     >> .env
+                        echo "MONGO_URI=${env.MONGO_URI}"          >> .env
+                        echo "DOCKER_HUB_USER=${DOCKER_HUB_USER}" >> .env
+                    """                
 
                     sh 'docker compose down -v --remove-orphans'
                     sh 'docker compose up -d --remove-orphans'
