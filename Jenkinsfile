@@ -11,17 +11,16 @@ pipeline {
         PORT           = "5000"
     }
 
+    tools {
+        nodejs "Node-24"
+    }
+
     stages {
 
         // ── STAGE LINT ────────────────────────────────────────────────────────
         stage('Lint') {
             parallel {
                 stage('lint:code') {
-                    agent { 
-                        docker { 
-                            image 'node:24-alpine' 
-                        } 
-                    }
                     steps {
                         sh 'npm install --prefix frontend && npm run lint --prefix frontend'
                         sh 'npm install --prefix backend  && npm run lint --prefix backend'
@@ -29,10 +28,6 @@ pipeline {
                 }
 
                 stage('lint:dockerfile') {
-                    agent { docker { 
-                        image 'docker:29.3.1' 
-                        } 
-                    }
                     steps {
                         sh 'docker build --check frontend'
                         sh 'docker build --check backend'
@@ -43,11 +38,6 @@ pipeline {
 
         // ── STAGE BUILD ───────────────────────────────────────────────────────
         stage('Build') {
-            agent { 
-                docker { 
-                    image 'docker:29.3.1' 
-                }
-            }
             environment {
                 NODE_ENV = 'production'
             }
