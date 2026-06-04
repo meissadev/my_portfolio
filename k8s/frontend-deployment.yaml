@@ -1,12 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: kompose convert
-    kompose.version: 1.38.0 (a8f5d1cbd)
+  name: frontend
   labels:
     io.kompose.service: frontend
-  name: frontend
 spec:
   replicas: 1
   selector:
@@ -14,16 +11,19 @@ spec:
       io.kompose.service: frontend
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert
-        kompose.version: 1.38.0 (a8f5d1cbd)
       labels:
         io.kompose.service: frontend
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: worker-2
+      imagePullSecrets:
+        - name: docker-hub-secret
       containers:
-        - image: /:latest
-          name: portfolio-app
+        - name: portfolio-app
+          image: ${DOCKER_HUB_USER}/portfolio-app:latest
           ports:
             - containerPort: 80
               protocol: TCP
+          # VITE_API_URL est injecté au build, pas au runtime
+          # Elle est déjà compilée dans le bundle par Docker build
       restartPolicy: Always

@@ -1,12 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: kompose convert
-    kompose.version: 1.38.0 (a8f5d1cbd)
+  name: backend
   labels:
     io.kompose.service: backend
-  name: backend
 spec:
   replicas: 1
   selector:
@@ -14,20 +11,39 @@ spec:
       io.kompose.service: backend
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert
-        kompose.version: 1.38.0 (a8f5d1cbd)
       labels:
         io.kompose.service: backend
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: worker-2
+      imagePullSecrets:
+        - name: docker-hub-secret
       containers:
-        - env:
-            - name: CORS_ORIGIN
-            - name: MONGO_URI
-            - name: PORT
-          image: /:latest
-          name: portfolio-server
+        - name: portfolio-server
+          image: ${DOCKER_HUB_USER}/portfolio-server:latest
           ports:
             - containerPort: 5000
               protocol: TCP
+          env:
+            - name: CORS_ORIGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: CORS_ORIGIN
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: PORT
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_URI
+          readinessProbe:           # attendre que le backend soit prêt
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
       restartPolicy: Always

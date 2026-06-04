@@ -1,12 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: kompose convert
-    kompose.version: 1.38.0 (a8f5d1cbd)
+  name: db
   labels:
     io.kompose.service: db
-  name: db
 spec:
   replicas: 1
   selector:
@@ -16,15 +13,14 @@ spec:
     type: Recreate
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert
-        kompose.version: 1.38.0 (a8f5d1cbd)
       labels:
         io.kompose.service: db
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: worker-2
       containers:
-        - image: mongo:8.3.1
-          name: portfolio-mongo
+        - name: portfolio-mongo
+          image: mongo:8.3.1
           ports:
             - containerPort: 27017
               protocol: TCP
