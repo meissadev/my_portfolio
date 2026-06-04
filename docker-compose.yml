@@ -1,20 +1,5 @@
 services:
 
-  traefik:
-    image: traefik:v3.7
-    container_name: traefik
-    ports:
-      - "80:80"
-      - "8080:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
-    networks:
-      - portfolio-network
-
   frontend:
     depends_on:
       - backend
@@ -22,13 +7,6 @@ services:
     container_name: portfolio-app
     expose:
       - "80"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=portfolio-network"
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.frontend.entrypoints=web"
-      - "traefik.http.routers.frontend.priority=1"
-      - "traefik.http.services.frontend.loadbalancer.server.port=80"
     networks:
       - portfolio-network
 
@@ -43,12 +21,6 @@ services:
       - MONGO_URI=${MONGO_URI}
       - PORT=${PORT}
       - CORS_ORIGIN=${CORS_ORIGIN}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
-      - "traefik.http.routers.backend.entrypoints=web"
-      - "traefik.http.routers.backend.priority=2"
-      - "traefik.http.services.backend.loadbalancer.server.port=5000"
     networks:
       - portfolio-network
 

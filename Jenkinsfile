@@ -1,6 +1,41 @@
 pipeline {
     agent {
-        label 'linux'
+        kubernetes {
+            yaml '''
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    some-label: jenkins-test
+spec:
+  serviceAccountName: jenkins-agent
+  nodeSelector:
+    kubernetes.io/hostname: worker-2
+  containers:
+  - name: maven
+    image: maven:3.8.1-openjdk-11
+    command: [cat]
+    tty: true
+  - name: kubectl
+    image: alpine/k8s:1.27.3
+    command: [cat]
+    tty: true
+  - name: docker
+    image: docker:24-dind
+    securityContext:
+      privileged: true
+    env:
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
+  - name: docker-client
+    image: docker:24-cli
+    command: [cat]
+    tty: true
+    env:
+    - name: DOCKER_HOST
+      value: tcp://localhost:2375
+'''
+        }
     }
 
     environment {
@@ -9,7 +44,7 @@ pipeline {
         VITE_API_URL   = "http://192.168.60.128/api"
         CORS_ORIGIN    = "http://192.168.60.128"
         PORT           = "5000"
-        SONAR_HOST_URL = "http://192.168.60.128:9000"   // ← URL de ton SonarQube
+        SONAR_HOST_URL = "http://sonarqube-sonarqube.devops-tools.svc.cluster.local:9000"
     }
 
     tools {
@@ -17,8 +52,19 @@ pipeline {
     }
 
     stages {
+        stage('Test de l Agent') {
+            steps {
+                container('maven') {
+                    sh 'mvn --version'
+                }
+                container('kubectl') {
+                    sh 'kubectl version --client'
+                    sh 'kubectl get pods -n devops-tools -o wide'
+                }
+            }
+        }
 
-        // ── STAGE LINT ────────────────────────────────────────────────────────
+        // ── STAGE LINT  ────────────────────────────────────────────────────────
         stage('Lint') {
             parallel {
                 stage('lint:code') {
@@ -30,8 +76,10 @@ pipeline {
 
                 stage('lint:dockerfile') {
                     steps {
-                        sh 'docker build --check frontend'
-                        sh 'docker build --check backend'
+                        container('docker-client') {
+                            sh 'docker build --check frontend'
+                            sh 'docker build --check backend'
+                        }
                     }
                 }
             }
@@ -41,7 +89,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    withCredentials([string(credentialsId: 'sonar-token',
+                    withCredentials([string(credentialsId: 'scan-jenkins',
                                             variable: 'SONAR_TOKEN')]) {
                         sh """
                             ${tool 'SonarScanner'}/bin/sonar-scanner \
@@ -74,7 +122,7 @@ pipeline {
                 NODE_ENV = 'production'
             }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
+                withCredentials([usernamePassword(credentialsId: 'docker-creds',
                                                     usernameVariable: 'DOCKER_HUB_USER',
                                                     passwordVariable: 'DOCKER_HUB_TOKEN')]) {
                     sh 'echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USER" --password-stdin'
@@ -110,69 +158,69 @@ pipeline {
             }
         }
 
-        // ── STAGE DEPLOY ──────────────────────────────────────────────────────
-        stage('Deploy') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
-                                                    usernameVariable: 'DOCKER_HUB_USER',
-                                                    passwordVariable: 'DOCKER_HUB_TOKEN')]) {
-                    sh 'echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USER" --password-stdin'
+//         // ── STAGE DEPLOY ──────────────────────────────────────────────────────
+//         stage('Deploy') {
+//             steps {
+//                 withCredentials([usernamePassword(credentialsId: 'docker-creds',
+//                                                     usernameVariable: 'DOCKER_HUB_USER',
+//                                                     passwordVariable: 'DOCKER_HUB_TOKEN')]) {
+//                     sh 'echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USER" --password-stdin'
 
-                    sh """
-                        echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}" >  .env
-                        echo "BACKEND_IMAGE=${BACKEND_IMAGE}"   >> .env
-                        echo "VITE_API_URL=${VITE_API_URL}"     >> .env
-                        echo "CORS_ORIGIN=${CORS_ORIGIN}"       >> .env
-                        echo "PORT=${PORT}"                     >> .env
-                        echo "MONGO_URI=${env.MONGO_URI}"          >> .env
-                        echo "DOCKER_HUB_USER=${DOCKER_HUB_USER}" >> .env
-                    """
+//                     sh """
+//                         echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}" >  .env
+//                         echo "BACKEND_IMAGE=${BACKEND_IMAGE}"   >> .env
+//                         echo "VITE_API_URL=${VITE_API_URL}"     >> .env
+//                         echo "CORS_ORIGIN=${CORS_ORIGIN}"       >> .env
+//                         echo "PORT=${PORT}"                     >> .env
+//                         echo "MONGO_URI=${env.MONGO_URI}"          >> .env
+//                         echo "DOCKER_HUB_USER=${DOCKER_HUB_USER}" >> .env
+//                     """
 
-                    sh 'docker compose down -v'
-                    sh 'docker compose up -d --remove-orphans'
-                    sh 'docker image prune -f'
-                    sh 'sleep 10'
-                    sh 'docker ps'
-                }
-            }
+//                     sh 'docker compose down -v'
+//                     sh 'docker compose up -d --remove-orphans'
+//                     sh 'docker image prune -f'
+//                     sh 'sleep 10'
+//                     sh 'docker ps'
+//                 }
+//             }
 
-            post {
-                always {
-                    sh 'rm -f .env || true'
-                    sh 'docker logout || true'
-                }
-            }
-        }
-    }
+//             post {
+//                 always {
+//                     sh 'rm -f .env || true'
+//                     sh 'docker logout || true'
+//                 }
+//             }
+//         }
+//     }
 
-    post {
-        always {
-            emailext(
-                subject: "[Jenkins] ${currentBuild.currentResult} — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """Pipeline: ${env.JOB_NAME}
-Build: #${env.BUILD_NUMBER}
-Status: ${currentBuild.currentResult}
-Duration: ${currentBuild.durationString}
-Branch: ${env.GIT_BRANCH}
-Commit: ${env.GIT_COMMIT}
+//     post {
+//         always {
+//             emailext(
+//                 subject: "[Jenkins] ${currentBuild.currentResult} — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+//                 body: """Pipeline: ${env.JOB_NAME}
+// Build: #${env.BUILD_NUMBER}
+// Status: ${currentBuild.currentResult}
+// Duration: ${currentBuild.durationString}
+// Branch: ${env.GIT_BRANCH}
+// Commit: ${env.GIT_COMMIT}
 
-Logs: ${env.BUILD_URL}console""",
-                mimeType: 'text/plain',
-                to: 'meissababou66@gmail.com'
-            )
-        }
+// Logs: ${env.BUILD_URL}console""",
+//                 mimeType: 'text/plain',
+//                 to: 'meissababou66@gmail.com'
+//             )
+//         }
 
-        failure {
-            emailext(
-                subject: "FAILED — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """Le pipeline a echoue.
+//         failure {
+//             emailext(
+//                 subject: "FAILED — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+//                 body: """Le pipeline a echoue.
 
-Job: ${env.JOB_NAME}
-Build: #${env.BUILD_NUMBER}
-Logs: ${env.BUILD_URL}console""",
-                mimeType: 'text/plain',
-                to: 'meissababou66@gmail.com'
-            )
-        }
+// Job: ${env.JOB_NAME}
+// Build: #${env.BUILD_NUMBER}
+// Logs: ${env.BUILD_URL}console""",
+//                 mimeType: 'text/plain',
+//                 to: 'meissababou66@gmail.com'
+//             )
+//         }
     }
 }
