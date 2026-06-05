@@ -2,39 +2,39 @@ pipeline {
     agent {
         kubernetes {
             yaml '''
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    some-label: jenkins-test
-spec:
-  serviceAccountName: jenkins-agent
-  nodeSelector:
-    kubernetes.io/hostname: worker-2
-  containers:
-  - name: maven
-    image: maven:3.8.1-openjdk-11
-    command: [cat]
-    tty: true
-  - name: kubectl
-    image: alpine/k8s:1.27.3
-    command: [cat]
-    tty: true
-  - name: docker
-    image: docker:24-dind
-    securityContext:
-      privileged: true
-    env:
-    - name: DOCKER_TLS_CERTDIR
-      value: ""
-  - name: docker-client
-    image: docker:24-cli
-    command: [cat]
-    tty: true
-    env:
-    - name: DOCKER_HOST
-      value: tcp://localhost:2375
-'''
+            apiVersion: v1
+            kind: Pod
+            metadata:
+            labels:
+                some-label: jenkins-test
+            spec:
+            serviceAccountName: jenkins-agent
+            nodeSelector:
+                kubernetes.io/hostname: worker-2
+            containers:
+            - name: maven
+                image: maven:3.8.1-openjdk-11
+                command: [cat]
+                tty: true
+            - name: kubectl
+                image: alpine/k8s:1.27.3
+                command: [cat]
+                tty: true
+            - name: docker
+                image: docker:24-dind
+                securityContext:
+                privileged: true
+                env:
+                - name: DOCKER_TLS_CERTDIR
+                value: ""
+            - name: docker-client
+                image: docker:24-cli
+                command: [cat]
+                tty: true
+                env:
+                - name: DOCKER_HOST
+                value: tcp://localhost:2375
+            '''
         }
     }
 
@@ -223,39 +223,39 @@ spec:
                 failure {
                     container('kubectl') {
                         // ── 5. Rollout status ────────────────────────────────────────
-sh 'kubectl rollout status deployment/frontend -n default --timeout=120s || true'
-sh 'kubectl rollout status deployment/backend  -n default --timeout=120s || true'
+                        sh 'kubectl rollout status deployment/frontend -n default --timeout=120s || true'
+                        sh 'kubectl rollout status deployment/backend  -n default --timeout=120s || true'
 
-// ── 6. Diagnostic complet ────────────────────────────────────
-sh '''
-    echo "===== PODS ====="
-    kubectl get pods -n default -o wide
+                        // ── 6. Diagnostic complet ────────────────────────────────────
+                        sh '''
+                            echo "===== PODS ====="
+                            kubectl get pods -n default -o wide
 
-    echo "===== EVENTS (triés par date) ====="
-    kubectl get events -n default --sort-by=.lastTimestamp
+                            echo "===== EVENTS (triés par date) ====="
+                            kubectl get events -n default --sort-by=.lastTimestamp
 
-    echo "===== DESCRIBE FRONTEND ====="
-    kubectl describe deployment frontend -n default
+                            echo "===== DESCRIBE FRONTEND ====="
+                            kubectl describe deployment frontend -n default
 
-    echo "===== DESCRIBE BACKEND ====="
-    kubectl describe deployment backend -n default
+                            echo "===== DESCRIBE BACKEND ====="
+                            kubectl describe deployment backend -n default
 
-    echo "===== LOGS FRONTEND (dernier pod) ====="
-    POD=$(kubectl get pods -n default -l io.kompose.service=frontend \
-          --sort-by=.metadata.creationTimestamp -o jsonpath="{.items[-1].metadata.name}" 2>/dev/null)
-    [ -n "$POD" ] && kubectl logs "$POD" -n default --tail=50 || echo "Aucun pod frontend trouvé"
+                            echo "===== LOGS FRONTEND (dernier pod) ====="
+                            POD=$(kubectl get pods -n default -l io.kompose.service=frontend \
+                                --sort-by=.metadata.creationTimestamp -o jsonpath="{.items[-1].metadata.name}" 2>/dev/null)
+                            [ -n "$POD" ] && kubectl logs "$POD" -n default --tail=50 || echo "Aucun pod frontend trouvé"
 
-    echo "===== LOGS BACKEND (dernier pod) ====="
-    POD=$(kubectl get pods -n default -l io.kompose.service=backend \
-          --sort-by=.metadata.creationTimestamp -o jsonpath="{.items[-1].metadata.name}" 2>/dev/null)
-    [ -n "$POD" ] && kubectl logs "$POD" -n default --tail=50 || echo "Aucun pod backend trouvé"
+                            echo "===== LOGS BACKEND (dernier pod) ====="
+                            POD=$(kubectl get pods -n default -l io.kompose.service=backend \
+                                --sort-by=.metadata.creationTimestamp -o jsonpath="{.items[-1].metadata.name}" 2>/dev/null)
+                            [ -n "$POD" ] && kubectl logs "$POD" -n default --tail=50 || echo "Aucun pod backend trouvé"
 
-    echo "===== PVC STATUS ====="
-    kubectl get pvc -n default
+                            echo "===== PVC STATUS ====="
+                            kubectl get pvc -n default
 
-    echo "===== SECRETS & CONFIGMAP ====="
-    kubectl get secrets,configmap -n default
-'''
+                            echo "===== SECRETS & CONFIGMAP ====="
+                            kubectl get secrets,configmap -n default
+                        '''
                     }
                 }
             }
@@ -290,5 +290,5 @@ sh '''
 //                 to: 'meissababou66@gmail.com'
 //             )
 //         }
-    }
+    
 }
