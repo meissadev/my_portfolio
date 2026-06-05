@@ -51,7 +51,7 @@ pipeline {
         nodejs "Node-24"
     }
 
-    // stages {
+    stages {
     //     stage('Test de l Agent') {
     //         steps {
     //             container('maven') {
@@ -156,7 +156,6 @@ pipeline {
         // }
 
         // ── STAGE TEST ────────────────────────────────────────────────────────
-    stages {
         stage('Test') {
             steps {
                 echo 'Exécution des tests....'
@@ -261,7 +260,6 @@ pipeline {
                 }
             }
         }
-    }
 
 //     post {
 //         always {
