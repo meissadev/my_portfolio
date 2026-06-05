@@ -156,6 +156,7 @@ pipeline {
         // }
 
         // ── STAGE TEST ────────────────────────────────────────────────────────
+    stages {
         stage('Test') {
             steps {
                 echo 'Exécution des tests....'
@@ -260,6 +261,7 @@ pipeline {
                 }
             }
         }
+    }
 
 //     post {
 //         always {
