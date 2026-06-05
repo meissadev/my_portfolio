@@ -90,11 +90,11 @@ spec:
                 stage('Sonar Scan') {
                     steps {
                         // sh 'rm -rf frontend/node_modules backend/node_modules'
-                        withSonarQubeEnv('scan-jenkins') {
+                        withSonarQubeEnv('SonarQube') {
                             withCredentials([string(credentialsId: 'scan-jenkins',
                                                     variable: 'SONAR_TOKEN')]) {
                                 sh """
-                                    ${tool 'scan-jenkins'}/bin/sonar-scanner \
+                                    ${tool 'SonarScanner'}/bin/sonar-scanner \
                                         -Dsonar.projectKey=portfolio \
                                         -Dsonar.host.url=${SONAR_HOST_URL} \
                                         -Dsonar.login=\${SONAR_TOKEN} \
