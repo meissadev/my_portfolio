@@ -89,7 +89,7 @@ spec:
             stages {
                 stage('Sonar Scan') {
                     steps {
-                        sh 'rm -rf frontend/node_modules backend/node_modules'
+                        // sh 'rm -rf frontend/node_modules backend/node_modules'
                         withSonarQubeEnv('scan-jenkins') {
                             withCredentials([string(credentialsId: 'scan-jenkins',
                                                     variable: 'SONAR_TOKEN')]) {
