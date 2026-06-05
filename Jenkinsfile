@@ -75,14 +75,14 @@ spec:
   nodeSelector:
     kubernetes.io/hostname: worker-2
   containers:
-- name: jnlp
-  resources:
-    requests:
-      memory: "1Gi"
-      cpu: "250m"
-    limits:
-      memory: "2Gi"      # ← JVM 1g heap + overhead
-      cpu: "1000m"
+    - name: jnlp
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "250m"
+        limits:
+          memory: "2Gi"      # ← JVM 1g heap + overhead
+          cpu: "1000m"
   - name: sonar
     image: sonarsource/sonar-scanner-cli:latest
     command: [cat]
