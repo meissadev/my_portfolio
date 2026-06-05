@@ -75,14 +75,14 @@ spec:
   nodeSelector:
     kubernetes.io/hostname: worker-2
   containers:
-  - name: jnlp
-    resources:
-      requests:
-        memory: "256Mi"
-        cpu: "100m"
-      limits:
-        memory: "512Mi"
-        cpu: "500m"
+- name: jnlp
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"      # ← JVM 1g heap + overhead
+      cpu: "1000m"
   - name: sonar
     image: sonarsource/sonar-scanner-cli:latest
     command: [cat]
@@ -105,14 +105,15 @@ spec:
                             withCredentials([string(credentialsId: 'scan-jenkins',
                                                     variable: 'SONAR_TOKEN')]) {
                                 sh """
-                                    ${tool 'SonarScanner'}/bin/sonar-scanner \
-                                        -Dsonar.projectKey=portfolio \
-                                        -Dsonar.host.url=${SONAR_HOST_URL} \
-                                        -Dsonar.login=\${SONAR_TOKEN} \
-                                        -Dsonar.working.directory=${WORKSPACE}/.scannerwork \
-                                        -Dsonar.javascript.node.maxspace=256 \
-                                        -Dsonar.javascript.typecheck.enabled=false
-                                """
+                    export SONAR_SCANNER_OPTS="-Xmx1g -Xms256m"
+                    ${tool 'scan-jenkins'}/bin/sonar-scanner \
+                        -Dsonar.projectKey=portfolio \
+                        -Dsonar.host.url=${SONAR_HOST_URL} \
+                        -Dsonar.login=\${SONAR_TOKEN} \
+                        -Dsonar.working.directory=${WORKSPACE}/.scannerwork \
+                        -Dsonar.javascript.node.maxspace=200 \
+                        -Dsonar.javascript.typecheck.enabled=false
+                """
                             }
                         }
                     }
