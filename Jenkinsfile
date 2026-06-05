@@ -158,7 +158,7 @@ spec:
         // ── STAGE TEST ────────────────────────────────────────────────────────
         stage('Test') {
             steps {
-                echo 'Exécution des tests...'
+                echo 'Exécution des tests....'
             }
         }
 
