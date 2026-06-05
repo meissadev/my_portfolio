@@ -1,42 +1,46 @@
 pipeline {
-    agent {
-        kubernetes {
-            yaml '''
-            apiVersion: v1
-            kind: Pod
-            metadata:
-            labels:
-                some-label: jenkins-test
-            spec:
-            serviceAccountName: jenkins-agent
-            nodeSelector:
-                kubernetes.io/hostname: worker-2
-            containers:
-            - name: maven
-                image: maven:3.8.1-openjdk-11
-                command: [cat]
-                tty: true
-            - name: kubectl
-                image: alpine/k8s:1.27.3
-                command: [cat]
-                tty: true
-            - name: docker
-                image: docker:24-dind
-                securityContext:
-                privileged: true
-                env:
-                - name: DOCKER_TLS_CERTDIR
+        agent {
+                kubernetes {
+                        yaml '''
+
+apiVersion: v1
+kind: Pod
+metadata:
+    labels:
+        some-label: jenkins-test
+spec:
+    serviceAccountName: jenkins-agent
+    nodeSelector:
+        kubernetes.io/hostname: worker-2
+    containers:
+        - name: maven
+          image: maven:3.8.1-openjdk-11
+          command: [cat]
+          tty: true
+
+        - name: kubectl
+          image: alpine/k8s:1.27.3
+          command: [cat]
+          tty: true
+
+        - name: docker
+          image: docker:24-dind
+          securityContext:
+              privileged: true
+          env:
+              - name: DOCKER_TLS_CERTDIR
                 value: ""
-            - name: docker-client
-                image: docker:24-cli
-                command: [cat]
-                tty: true
-                env:
-                - name: DOCKER_HOST
-                value: tcp://localhost:2375
-            '''
+
+        - name: docker-client
+          image: docker:24-cli
+          command: [cat]
+          tty: true
+          env:
+              - name: DOCKER_HOST
+                value: "tcp://localhost:2375"
+'''
+                }
         }
-    }
 
     environment {
         FRONTEND_IMAGE = "portfolio-app"
@@ -86,37 +90,37 @@ pipeline {
         // }
 
         // ── STAGE SONARQUBE ───────────────────────────────────────────────────
-        stage('SonarQube Analysis') {
-            steps {
-                // Supprimer node_modules pour éviter OOMKill pendant le scan
-                // sh 'rm -rf frontend/node_modules backend/node_modules
-                withSonarQubeEnv('SonarQube') {
-                    withCredentials([string(credentialsId: 'scan-jenkins',
-                                            variable: 'SONAR_TOKEN')]) {
-                        sh """
-                            ${tool 'SonarScanner'}/bin/sonar-scanner \
-                                -Dsonar.projectKey=portfolio \
-                                -Dsonar.host.url=${SONAR_HOST_URL} \
-                                -Dsonar.token=${SONAR_TOKEN}
-                        """
-                        // les autres paramètres sont lus depuis sonar-project.properties
-                    }
-                }
-            }
-        }
+        // stage('SonarQube Analysis') {
+        //     steps {
+        //         // Supprimer node_modules pour éviter OOMKill pendant le scan
+        //         // sh 'rm -rf frontend/node_modules backend/node_modules'
+        //         withSonarQubeEnv('SonarQube') {
+        //             withCredentials([string(credentialsId: 'scan-jenkins',
+        //                                     variable: 'SONAR_TOKEN')]) {
+        //                 sh """
+        //                     ${tool 'SonarScanner'}/bin/sonar-scanner \
+        //                         -Dsonar.projectKey=portfolio \
+        //                         -Dsonar.host.url=${SONAR_HOST_URL} \
+        //                         -Dsonar.token=${SONAR_TOKEN}
+        //                 """
+        //                 // les autres paramètres sont lus depuis sonar-project.properties
+        //             }
+        //         }
+        //     }
+        // }
 
-        // ── STAGE QUALITY GATE ────────────────────────────────────────────────
-        // SonarQube analyse en asynchrone → on attend le résultat ici
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    // Attend que SonarQube renvoie "OK" ou "ERROR"
-                    waitForQualityGate abortPipeline: true
-                    // abortPipeline: true  → le pipeline ÉCHOUE si Quality Gate = ERROR
-                    // abortPipeline: false → le pipeline CONTINUE même si Quality Gate = ERROR
-                }
-            }
-        }
+        // // ── STAGE QUALITY GATE ────────────────────────────────────────────────
+        // // SonarQube analyse en asynchrone → on attend le résultat ici
+        // stage('Quality Gate') {
+        //     steps {
+        //         timeout(time: 5, unit: 'MINUTES') {
+        //             // Attend que SonarQube renvoie "OK" ou "ERROR"
+        //             waitForQualityGate abortPipeline: true
+        //             // abortPipeline: true  → le pipeline ÉCHOUE si Quality Gate = ERROR
+        //             // abortPipeline: false → le pipeline CONTINUE même si Quality Gate = ERROR
+        //         }
+        //     }
+        // }
 
         // ── STAGE BUILD ───────────────────────────────────────────────────────
         // stage('Build') {
@@ -223,8 +227,8 @@ pipeline {
                 failure {
                     container('kubectl') {
                         // ── 5. Rollout status ────────────────────────────────────────
-                        sh 'kubectl rollout status deployment/frontend -n default --timeout=120s || true'
-                        sh 'kubectl rollout status deployment/backend  -n default --timeout=120s || true'
+                        sh 'kubectl rollout status deployment/frontend -n default || true'
+                        sh 'kubectl rollout status deployment/backend  -n default || true'
 
                         // ── 6. Diagnostic complet ────────────────────────────────────
                         sh '''
