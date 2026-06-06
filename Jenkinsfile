@@ -59,8 +59,13 @@ pipeline {
                             --dry-run=client -o yaml | kubectl apply -f -
                     """
 
-                    // ── 5. Appliquer les manifests ───────────────────────────────
-                    sh 'kubectl apply -f k8s/ -n portfolio'
+                    // ── 5. Appliquer les manifests avec substitution des variables ───
+                    sh """
+                        export DOCKER_HUB_USER=${DOCKER_HUB_USER}
+                        for f in k8s/*.yaml; do
+                            envsubst < \$f | kubectl apply -f - -n portfolio
+                        done
+                    """
 
                     // ── 6. Forcer le re-pull des images :latest ──────────────────
                     sh """
