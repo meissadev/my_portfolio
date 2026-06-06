@@ -21,6 +21,7 @@ spec:
       containers:
         - name: portfolio-server
           image: ${DOCKER_HUB_USER}/portfolio-server:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
               protocol: TCP
