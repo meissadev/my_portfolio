@@ -26,6 +26,7 @@ pipeline {
                                             variable: 'SONAR_TOKEN')]) {
                         sh """
                             ${tool 'SonarScanner'}/bin/sonar-scanner \
+                                -Dsonar.javascript.node.maxspace=4096 \
                                 -Dsonar.projectKey=portfolio \
                                 -Dsonar.host.url=${SONAR_HOST_URL} \
                                 -Dsonar.token=${SONAR_TOKEN}
