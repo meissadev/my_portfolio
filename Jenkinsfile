@@ -16,6 +16,41 @@ pipeline {
             }
         }
 
+        // ── STAGE BUILD ───────────────────────────────────────────────────────
+        stage('Build') {
+            environment {
+                NODE_ENV = 'production'
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
+                                                    usernameVariable: 'DOCKER_HUB_USER',
+                                                    passwordVariable: 'DOCKER_HUB_TOKEN')]) {
+                    sh 'echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USER" --password-stdin'
+
+                    sh """
+                        docker build \
+                            --build-arg NODE_ENV=${NODE_ENV} \
+                            --build-arg VITE_API_URL=${VITE_API_URL} \
+                            -t "\${DOCKER_HUB_USER}/${FRONTEND_IMAGE}:latest" \
+                            frontend
+                    """
+                    sh """
+                        docker build \
+                            --build-arg NODE_ENV=${NODE_ENV} \
+                            -t "\${DOCKER_HUB_USER}/${BACKEND_IMAGE}:latest" \
+                            backend
+                    """
+                    sh 'docker push "${DOCKER_HUB_USER}/${FRONTEND_IMAGE}:latest"'
+                    sh 'docker push "${DOCKER_HUB_USER}/${BACKEND_IMAGE}:latest"'
+                }
+            }
+            post {
+                always {
+                    sh 'docker logout || true'
+                }
+            }
+        }
+
         stage('Deploy to Minikube') {
             steps {
                 withCredentials([
