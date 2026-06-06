@@ -136,13 +136,45 @@ pipeline {
                     // ── 8. Vérification finale ───────────────────────────────────
                     sh 'kubectl get pods -n portfolio'
                     sh 'kubectl get svc  -n portfolio'
+
+                    // ── 8. Re-forward des ports ──────────────────────────────────
+                    sh '''
+                        pkill -u jenkins -f "port-forward" || true
+                        sleep 2
+                        kubectl port-forward svc/frontend 32003:80   -n portfolio --address=0.0.0.0 > /var/lib/jenkins/pf-frontend.log 2>&1 &
+                        kubectl port-forward svc/backend  32002:5000 -n portfolio --address=0.0.0.0 > /var/lib/jenkins/pf-backend.log  2>&1 &
+                        echo "Port-forwards relancés"
+                    '''
                 }
             }
         }
     }
 
     post {
+        always {
+            emailext(
+                subject: "[Jenkins] ${currentBuild.currentResult} — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """Pipeline: ${env.JOB_NAME}
+                Build: #${env.BUILD_NUMBER}
+                Status: ${currentBuild.currentResult}
+                Duration: ${currentBuild.durationString}
+                Branch: ${env.GIT_BRANCH}
+                Commit: ${env.GIT_COMMIT}
+                Logs: ${env.BUILD_URL}console""",
+                            mimeType: 'text/plain',
+                            to: 'meissababou66@gmail.com'
+                        )
+        }
         failure {
+            emailext(
+                subject: "FAILED — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """Le pipeline a echoue.
+                Job: ${env.JOB_NAME}
+                Build: #${env.BUILD_NUMBER}
+                Logs: ${env.BUILD_URL}console""",
+                            mimeType: 'text/plain',
+                            to: 'meissababou66@gmail.com'
+                        )
             sh '''
                 kubectl rollout undo deployment/frontend -n portfolio || true
                 kubectl rollout undo deployment/backend  -n portfolio || true
