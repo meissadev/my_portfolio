@@ -14,8 +14,8 @@ spec:
       labels:
         io.kompose.service: backend
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: worker-2
+      # nodeSelector:
+      #   kubernetes.io/hostname: worker-2
       imagePullSecrets:
         - name: docker-hub-secret
       containers:
