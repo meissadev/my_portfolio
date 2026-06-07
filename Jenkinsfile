@@ -138,13 +138,13 @@ pipeline {
                     sh 'kubectl get svc  -n portfolio'
 
                     // ── 8. Re-forward des ports ──────────────────────────────────
-                    sh '''
-                        pkill -u jenkins -f "port-forward" || true
-                        sleep 2
-                        kubectl port-forward svc/frontend 32003:80   -n portfolio --address=0.0.0.0 > /var/lib/jenkins/pf-frontend.log 2>&1 &
-                        kubectl port-forward svc/backend  32002:5000 -n portfolio --address=0.0.0.0 > /var/lib/jenkins/pf-backend.log  2>&1 &
-                        echo "Port-forwards relancés"
-                    '''
+                    // sh '''
+                    //     pkill -u jenkins -f "port-forward" || true
+                    //     sleep 2
+                    //     kubectl port-forward svc/frontend 32003:80   -n portfolio --address=0.0.0.0 > /var/lib/jenkins/pf-frontend.log 2>&1 &
+                    //     kubectl port-forward svc/backend  32002:5000 -n portfolio --address=0.0.0.0 > /var/lib/jenkins/pf-backend.log  2>&1 &
+                    //     echo "Port-forwards relancés"
+                    // '''
                 }
             }
         }
