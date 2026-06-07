@@ -16,7 +16,7 @@ pipeline {
             }
         }
 
-        ── STAGE SONARQUBE ───────────────────────────────────────────────────
+        // ── STAGE SONARQUBE ───────────────────────────────────────────────────
         stage('SonarQube Analysis') {
             steps {
                                  // Supprimer node_modules pour éviter OOMKill pendant le scan
