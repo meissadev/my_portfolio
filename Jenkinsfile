@@ -4,8 +4,8 @@ pipeline {
     environment {
         FRONTEND_IMAGE = "portfolio-app"
         BACKEND_IMAGE  = "portfolio-server"
-        VITE_API_URL   = "http://192.168.60.130:32002/api"
-        CORS_ORIGIN    = "http://192.168.60.130:32003"
+        VITE_API_URL   = "http://192.168.49.2:32002/api"   // ← IP Minikube
+        CORS_ORIGIN    = "http://192.168.49.2:32003"        // ← IP Minikube
         PORT           = "5000"
     }
 
@@ -115,19 +115,20 @@ pipeline {
                             --dry-run=client -o yaml | kubectl apply -f -
                     """
 
-                    // ── 5. Appliquer les manifests avec substitution des variables ───
+                   // ── 5. Appliquer les manifests ───────────────────────────────
                     sh """
                         export DOCKER_HUB_USER=${DOCKER_HUB_USER}
                         for f in k8s/*.yaml; do
                             envsubst < \$f | kubectl apply -f - -n portfolio
                         done
                     """
-
-                    // ── 6. Forcer le re-pull des images :latest ──────────────────
-                    sh """
-                        kubectl rollout restart deployment/frontend -n portfolio
+                    
+                    // ── 6. Attendre la propagation des secrets puis redémarrer ───
+                    sh '''
+                        sleep 30
                         kubectl rollout restart deployment/backend  -n portfolio
-                    """
+                        kubectl rollout restart deployment/frontend -n portfolio
+                    '''
 
                     // ── 7. Attendre que tout soit prêt ───────────────────────────
                     sh 'kubectl rollout status deployment/frontend -n portfolio'
