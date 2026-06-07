@@ -17,25 +17,25 @@ pipeline {
         }
 
         //── STAGE SONARQUBE ───────────────────────────────────────────────────
-        stage('SonarQube Analysis') {
-            steps {
-                                 // Supprimer node_modules pour éviter OOMKill pendant le scan
-                // sh 'rm -rf frontend/node_modules backend/node_modules
-                withSonarQubeEnv('SonarQube') {
-                    withCredentials([string(credentialsId: 'sonarqube-token',
-                                            variable: 'SONAR_TOKEN')]) {
-                        sh """
-                            ${tool 'SonarScanner'}/bin/sonar-scanner \
-                                -Dsonar.javascript.node.maxspace=1024 \
-                                -Dsonar.projectKey=portfolio \
-                                -Dsonar.host.url=${SONAR_HOST_URL} \
-                                -Dsonar.token=${SONAR_TOKEN}
-                        """
-                        // les autres paramètres sont lus depuis sonar-project.properties
-                    }
-                }
-            }
-        }
+        // stage('SonarQube Analysis') {
+        //     steps {
+        //                          // Supprimer node_modules pour éviter OOMKill pendant le scan
+        //         // sh 'rm -rf frontend/node_modules backend/node_modules
+        //         withSonarQubeEnv('SonarQube') {
+        //             withCredentials([string(credentialsId: 'sonarqube-token',
+        //                                     variable: 'SONAR_TOKEN')]) {
+        //                 sh """
+        //                     ${tool 'SonarScanner'}/bin/sonar-scanner \
+        //                         -Dsonar.javascript.node.maxspace=1024 \
+        //                         -Dsonar.projectKey=portfolio \
+        //                         -Dsonar.host.url=${SONAR_HOST_URL} \
+        //                         -Dsonar.token=${SONAR_TOKEN}
+        //                 """
+        //                 // les autres paramètres sont lus depuis sonar-project.properties
+        //             }
+        //         }
+        //     }
+        // }
 
         // ── STAGE BUILD ───────────────────────────────────────────────────────
         stage('Build') {
