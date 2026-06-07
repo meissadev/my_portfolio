@@ -78,8 +78,8 @@ pipeline {
                     usernamePassword(credentialsId: 'dockerhub-creds',
                                     usernameVariable: 'DOCKER_HUB_USER',
                                     passwordVariable: 'DOCKER_HUB_TOKEN'),
-                    string(credentialsId: 'mongo-uri',
-                           variable: 'mongo-uri')
+                    string(credentialsId: 'mongo_uri',
+                           variable: 'MONGO_URI')
                 ]) {
                     // ── 1. Namespace ─────────────────────────────────────────────
                     sh '''
@@ -100,7 +100,7 @@ pipeline {
                     // ── 3. Secret MongoDB ────────────────────────────────────────
                     sh """
                         kubectl create secret generic mongo-secret \
-                            --from-literal=mongo-uri=${mongo-uri} \
+                            --from-literal=MONGO_URI=${MONGO_URI} \
                             -n portfolio \
                             --dry-run=client -o yaml | kubectl apply -f -
                     """
