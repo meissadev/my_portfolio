@@ -78,7 +78,7 @@ pipeline {
                     usernamePassword(credentialsId: 'dockerhub-creds',
                                     usernameVariable: 'DOCKER_HUB_USER',
                                     passwordVariable: 'DOCKER_HUB_TOKEN'),
-                    string(credentialsId: 'mongo_uri',
+                    string(credentialsId: 'mongodb_uri',
                            variable: 'MONGO_URI')
                 ]) {
                     // ── 1. Namespace ─────────────────────────────────────────────
