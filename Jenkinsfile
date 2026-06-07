@@ -4,8 +4,8 @@ pipeline {
     environment {
         FRONTEND_IMAGE = "portfolio-app"
         BACKEND_IMAGE  = "portfolio-server"
-        VITE_API_URL   = "http://192.168.200.130:32002/api"
-        CORS_ORIGIN    = "http://192.168.200.130:32003"
+        VITE_API_URL   = "http://192.168.60.130:32002/api"
+        CORS_ORIGIN    = "http://192.168.60.130:32003"
         PORT           = "5000"
     }
 
@@ -26,7 +26,7 @@ pipeline {
                                             variable: 'SONAR_TOKEN')]) {
                         sh """
                             ${tool 'SonarScanner'}/bin/sonar-scanner \
-                                -Dsonar.javascript.node.maxspace=4096 \
+                                -Dsonar.javascript.node.maxspace=1024 \
                                 -Dsonar.projectKey=portfolio \
                                 -Dsonar.host.url=${SONAR_HOST_URL} \
                                 -Dsonar.token=${SONAR_TOKEN}
@@ -78,8 +78,8 @@ pipeline {
                     usernamePassword(credentialsId: 'dockerhub-creds',
                                     usernameVariable: 'DOCKER_HUB_USER',
                                     passwordVariable: 'DOCKER_HUB_TOKEN'),
-                    string(credentialsId: 'mongo_uri',
-                           variable: 'MONGO_URI')
+                    string(credentialsId: 'mongo-uri',
+                           variable: 'mongo-uri')
                 ]) {
                     // ── 1. Namespace ─────────────────────────────────────────────
                     sh '''
@@ -100,7 +100,7 @@ pipeline {
                     // ── 3. Secret MongoDB ────────────────────────────────────────
                     sh """
                         kubectl create secret generic mongo-secret \
-                            --from-literal=MONGO_URI=${MONGO_URI} \
+                            --from-literal=mongo-uri=${mongo-uri} \
                             -n portfolio \
                             --dry-run=client -o yaml | kubectl apply -f -
                     """
