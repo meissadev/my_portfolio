@@ -95,6 +95,8 @@ terraform init -input=false
 
 terraform apply -auto-approve -var-file=secrets.auto.tfvars
 rm -f secrets.auto.tfvars
+kubectl rollout restart deployment/frontend -n portfolio
+kubectl rollout restart deployment/backend  -n portfolio
                     '''
 //                     terraform import kubernetes_namespace.portfolio portfolio
 // terraform import kubernetes_secret.docker_hub portfolio/docker-hub-secret
